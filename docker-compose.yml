@@ -1,0 +1,46 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+
+  app:
+    build: .
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+      - .:/usr/src/
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "python app/main.py"
+    restart: always
+
+  consumer:
+    build: .
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+      - .:/usr/src/
+    command: >
+      bash -c "python app/consumers.py"
+    restart: always
+
+  test:
+    build: .
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+      - .:/usr/src
+    command: [
+      "pytest", "tests/test_main.py"
+    ]
+    restart: on-failure
