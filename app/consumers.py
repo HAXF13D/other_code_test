@@ -29,7 +29,12 @@ def write_log(message):
 def connect_with_retry():
     while True:
         try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
+            connection_params = pika.ConnectionParameters(
+                host='rabbitmq',
+                heartbeat=600,  # Установите более длительный интервал сердечных сигналов, например, 600 секунд
+                blocked_connection_timeout=300  # Установите таймаут блокировки соединения, например, 300 секунд
+            )
+            connection = pika.BlockingConnection(connection_params)
             return connection
         except pika.exceptions.AMQPConnectionError:
             print("Connection failed, retrying in 5 seconds...")
